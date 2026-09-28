@@ -1,11 +1,13 @@
-﻿import { io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 /**
  * Single shared Socket.io client instance.
  * autoConnect: false — the connection is established explicitly after
  * the user enters a username, preventing anonymous socket connections.
  */
-const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
+const socket = io(SOCKET_URL || (import.meta.env.DEV ? 'http://localhost:5000' : undefined), {
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: Infinity,

@@ -1,4 +1,4 @@
-﻿const { Server } = require('socket.io');
+const { Server } = require('socket.io');
 const messageService = require('../services/messageService');
 
 // In-memory map: socketId -> username
@@ -9,10 +9,23 @@ const onlineUsers = new Map();
  * @param {import('http').Server} httpServer
  */
 function initSocket(httpServer) {
+  const allowedOriginSetting = process.env.CLIENT_URL || '*';
+  const allowedOrigins = allowedOriginSetting === '*'
+    ? '*'
+    : allowedOriginSetting.split(',').map((u) => u.trim().replace(/\/$/, ''));
+
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins === '*') return callback(null, true);
+        const cleanOrigin = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes(cleanOrigin) || cleanOrigin.endsWith('.vercel.app')) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       methods: ['GET', 'POST'],
+      credentials: true,
     },
   });
 

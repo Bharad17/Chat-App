@@ -1,0 +1,14 @@
+﻿services:
+  - type: web
+    name: chatapp-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.15.0
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
