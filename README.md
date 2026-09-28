@@ -252,30 +252,68 @@ After starting both servers, verify:
 
 ## Deployment
 
+The production application uses separate hosting for the frontend and the persistent
+Socket.io backend:
+
+```text
+React + Vite frontend (Vercel)
+              │
+              │ REST API and Socket.io
+              ▼
+Node + Express + Socket.io backend (Render)
+              │
+              ▼
+MongoDB Atlas
+```
+
+### Live deployment
+
+- **Frontend:** https://client-omega-eight-97.vercel.app
+- **Backend:** https://chat-app-1-fomk.onrender.com
+- **Backend health check:** https://chat-app-1-fomk.onrender.com/health
+
+The free Vercel Hobby and Render Free plans are sufficient for this deployment.
+The Render service may sleep after inactivity, so its first request after a period
+of inactivity can take longer than usual.
+
 ### Backend Deployment (Render)
 
-1. Create a **Web Service** on [Render](https://render.com).
-2. Connect your Git repository.
-3. Configure the service:
+1. Create a **Web Service** on [Render](https://render.com) and connect this repository.
+2. Use the `master` branch and configure:
    - **Root Directory:** `server`
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
-4. Set Environment Variables in Render:
-   - `PORT`: `5000` (or Render default)
+   - **Instance Type:** `Free`
+3. Set these environment variables in Render:
    - `MONGODB_URI`: Your MongoDB Atlas connection string (`mongodb+srv://...`)
-   - `CLIENT_URL`: Your Vercel frontend URL (`https://your-app.vercel.app`)
+   - `CLIENT_URL`: The exact Vercel frontend URL, without a trailing slash
+4. In MongoDB Atlas **Network Access**, allow the Render service to connect. On
+   the Render free plan, outbound IP addresses can change; `0.0.0.0/0` is the
+   practical allowlist entry for this deployment.
+5. Confirm the backend is running by opening `/health` on the Render URL.
 
 ### Frontend Deployment (Vercel)
 
-1. Import your Git repository on [Vercel](https://vercel.com).
+1. Import this repository on [Vercel](https://vercel.com) or deploy the `client`
+   directory with the Vercel CLI.
 2. Configure project settings:
    - **Root Directory:** `client`
    - **Framework Preset:** `Vite`
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
-3. Set Environment Variables in Vercel:
-   - `VITE_API_URL`: Your Render backend URL (`https://your-api.onrender.com`)
-   - `VITE_SOCKET_URL`: Your Render backend URL (`https://your-api.onrender.com`)
+3. Set these Production environment variables:
+   - `VITE_API_URL`: `https://chat-app-1-fomk.onrender.com`
+   - `VITE_SOCKET_URL`: `https://chat-app-1-fomk.onrender.com`
+4. Redeploy after changing environment variables because Vite embeds `VITE_*`
+   values during the build:
+
+   ```powershell
+   cd client
+   npx vercel --prod --yes
+   ```
+
+Do not commit `.env` files or place `MONGODB_URI` in Vercel. The MongoDB
+connection string belongs only in the backend's Render environment variables.
 
 ---
 
@@ -307,4 +345,3 @@ After starting both servers, verify:
 - Push notifications
 - Image / file sharing
 - End-to-end encryption
-- Deployment (Render + Vercel)
